@@ -29,6 +29,7 @@ INSTALLED_APPS = [
 
     #my apps
     'accounts.apps.AccountsConfig',
+    'budgeting.apps.BudgetingConfig',
 
     #third party apps
     'allauth',
