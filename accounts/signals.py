@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from .models import Profile, Team, Membership
@@ -24,4 +24,14 @@ def change_balance(sender, instance, created, **kwargs):
             team = membership.team
             team.balance += instance.amount
             team.save()
+
+@receiver(pre_delete, sender=Expense)
+def deleted_expense(sender, instance, **kwargs):
+    profile = instance.user
+    membership = Membership.objects.filter(profile=profile).first()
+    if membership:
+        team = membership.team
+        team.balance -= instance.amount
+        team.save()
+
         
