@@ -18,19 +18,15 @@ def save_profile(sender, instance, **kwargs):
 @receiver(post_save, sender=Expense)
 def change_balance(sender, instance, created, **kwargs):
     if created:
-        profile = instance.user
-        membership = Membership.objects.filter(profile=profile).first()
-        if membership:
-            team = membership.team
+        team = instance.team
+        if team:
             team.balance += instance.amount
             team.save()
 
 @receiver(pre_delete, sender=Expense)
 def deleted_expense(sender, instance, **kwargs):
-    profile = instance.user
-    membership = Membership.objects.filter(profile=profile).first()
-    if membership:
-        team = membership.team
+    team = instance.team
+    if team:
         team.balance -= instance.amount
         team.save()
 

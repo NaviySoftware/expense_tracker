@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Team, Membership
+from .models import Profile, Team, Membership, MemberRequest
 
 
 class MembershipInLine(admin.TabularInline):
@@ -17,4 +17,6 @@ class TeamAdmin(admin.ModelAdmin):
 
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Team, TeamAdmin)
+
+admin.site.register(MemberRequest)
 
