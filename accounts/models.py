@@ -1,5 +1,14 @@
+import random
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models import Sum
+
+today = timezone.now()
+
+def color_picker():
+    r = lambda: random.randint(0, 255)
+    return '#%02X%02X%02X' % (r(),r(),r())
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -8,7 +17,11 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+    @property
+    def all_teams(self):
+        return self.team_set.all()[0]
 
+        
 class Team(models.Model):
     title = models.CharField(max_length=100)
     balance = models.IntegerField(default=0)
@@ -17,6 +30,25 @@ class Team(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def all_expenses(self):
+        return self.for_team.all().order_by('-created')
+
+    @property
+    def percentage(self):
+        members = []
+        t_exps = self.all_expenses.aggregate(summary=Sum('amount'))
+        team_members = self.members.all()
+        for member in team_members:
+            m_exps = member.expense_set.aggregate(summary=Sum('amount'))
+            perc = round(m_exps['summary']/t_exps['summary']*100)
+            members.append(
+                {'name': member.user.username, 
+                'perc': perc, 
+                'color': color_picker()})
+        return members
+
 
 
 class Membership(models.Model):

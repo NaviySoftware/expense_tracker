@@ -1,1 +1,269 @@
-<h1>Hello world.</h1>
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mt-4">Dashboard</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item active">Dashboard</li>
+</ol>
+
+<div class="row">
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-dark mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{profile.all_teams.title}}</h5>
+                <p class="card-text">{{ profile.all_teams.balance }}</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="#">View Details</a>
+                <div class="small"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-dark mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Year {{ yearly_expenses.last.year.year }}</h5>
+                <p class="card-text">{{ yearly_expenses.last.summary }} tenge</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="#">View Details</a>
+                <div class="small"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-dark mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{ monthly_expenses.last.month|date:"F Y" }} </h5>
+                <p class="card-text">{{ monthly_expenses.last.summary }} tenge</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="#">View Details</a>
+                <div class="small"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-dark mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{ dayly_expenses.last.day|date:"d F Y" }}</h5>
+                <p class="card-text">{{ dayly_expenses.last.summary }} tenge</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="#">View Details</a>
+                <div class="small"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+   
+</div>
+
+<div class="row">
+    <div class="col-xl-6">
+        <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-chart-area mr-1"></i>Dayly expenses</div>
+            <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Monthly expenses</div>
+            <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+      <div class="card mb-4">
+          <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Team's monthly expenses</div>
+          <div class="card-body"><canvas id="myBarChart2" width="100%" height="50"></canvas></div>
+      </div>
+  </div>
+  <div class="col-lg-6">
+      <div class="card mb-4">
+          <div class="card-header"><i class="fas fa-chart-pie mr-1"></i>Team members expenses</div>
+          <div class="card-body"><canvas id="myPieChart" width="100%" height="50"></canvas></div>
+      </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header"><i class="fas fa-table mr-1"></i>Current month's expenses</div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Team</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Team</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+
+                    {% for expense in curent_month_expenses %}
+                    <tr>
+                        <td>{{ expense.title }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>{{ expense.categor }}</td>
+                        <td>{{ expense.amount }}</td>
+                        <td>{{ expense.created|date:"Y/m/d" }}</td>
+                        <td>{{ expense.team.title }}</td>
+                    </tr>
+                    {% endfor %}
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block js_scripts %}
+<script>
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#292b2c';
+
+// Area Chart Example
+var ctx1 = document.getElementById("myAreaChart");
+var myLineChart = new Chart(ctx1, {
+  type: 'line',
+  data: {
+    labels: [ {% for day in dayly_expenses %} "{{ day.day|date:'M d' }}", {% endfor %} ],
+    datasets: [{
+      label: "Expense",
+      lineTension: 0.3,
+      backgroundColor: "rgba(2,117,216,0.2)",
+      borderColor: "rgba(2,117,216,1)",
+      pointRadius: 5,
+      pointBackgroundColor: "rgba(2,117,216,1)",
+      pointBorderColor: "rgba(255,255,255,0.8)",
+      pointHoverRadius: 5,
+      pointHoverBackgroundColor: "rgba(2,117,216,1)",
+      pointHitRadius: 50,
+      pointBorderWidth: 2,
+      data: [{% for day in dayly_expenses %} '{{ day.summary }}', {% endfor %}],
+    }],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        time: {
+          unit: 'date'
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 7
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          max: {{ day_max }},
+          maxTicksLimit: 5
+        },
+        gridLines: {
+          color: "rgba(0, 0, 0, .125)",
+        }
+      }],
+    },
+    legend: {
+      display: false
+    }
+  }
+});
+
+
+// Bar Chart Example
+var ctx = document.getElementById("myBarChart");
+var myLineChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: [{% for month in monthly_expenses %} '{{month.month|date:"F"}}', {% endfor %}],
+    datasets: [{
+      label: "Expenses",
+      backgroundColor: "rgba(2,117,216,1)",
+      borderColor: "rgba(2,117,216,1)",
+      data: [{% for month in monthly_expenses %} '{{ month.summary }}', {% endfor %}],
+    }],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        time: {
+          unit: 'month'
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 6
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          max: {{ month_max }},
+          maxTicksLimit: 5
+        },
+        gridLines: {
+          display: true
+        }
+      }],
+    },
+    legend: {
+      display: false
+    }
+  }
+});
+
+// Pie Chart Example
+var ctx2 = document.getElementById("myPieChart");
+var myPieChart = new Chart(ctx2, {
+  type: 'pie',
+  data: {
+    labels: [ 
+      {% for team in profile.all_teams.percentage %} 
+        '{{ team.name }}', 
+      {% endfor %} 
+    ],
+    datasets: [{
+      data: [
+        {% for team in profile.all_teams.percentage %} 
+          {{ team.perc }}, 
+        {% endfor %}
+      ],
+      backgroundColor: [
+        {% for team in profile.all_teams.percentage %} 
+          '{{ team.color }}', 
+        {% endfor %}
+      ],
+    }],
+  },
+});
+
+</script>
+
+{% endblock js_scripts %}
