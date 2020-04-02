@@ -19,7 +19,9 @@ class Profile(models.Model):
 
     @property
     def all_teams(self):
-        return self.team_set.all()[0]
+        if self.team_set.all():
+            return self.team_set.all()[0]
+        return False
 
         
 class Team(models.Model):

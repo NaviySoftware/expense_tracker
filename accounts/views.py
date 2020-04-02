@@ -26,27 +26,26 @@ def profile(request):
             When(created__month=today.month, then=2),
             When(created__day=today.day, then=3),
             default=0,
-            order_by=('created'),
             output_field=IntegerField()
         )
     )
 
     curent_month_expenses = expenses.filter(created__month=today.month)
 
-    expenses_per_day = expenses.annotate(
-        day=TruncDay('created')).values('day').annotate(
+    expenses_per_day = expenses.values(
+        day=TruncDay('created')).annotate(
             expenses=Count('id'), summary=Sum('amount')
-        ).order_by('day').values('day', 'expenses', 'summary')
+        ).order_by('day')
 
-    expenses_per_month = expenses.annotate(
-        month=TruncMonth('created')).values('month').annotate(
+    expenses_per_month = expenses.values(
+        month=TruncMonth('created')).annotate(
             expenses=Count('id'), summary=Sum('amount')
-        ).order_by('month').values('month', 'expenses', 'summary')
+        ).order_by('month')
 
-    expenses_per_year = expenses.annotate(
-        year=TruncYear('created')).values('year').annotate(
+    expenses_per_year = expenses.values(
+        year=TruncYear('created')).annotate(
             expenses=Count('id'), summary=Sum('amount')
-        ).order_by('year').values('year', 'expenses', 'summary')
+        ).order_by('year')
 
     context = {
         'profile': user_profile,
@@ -59,3 +58,4 @@ def profile(request):
     }
 
     return render(request, 'accounts/profile.html', context)
+
