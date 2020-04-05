@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView
 
+from .models import Expense
 from .forms import AddExpenseForm
 
 
@@ -22,5 +24,9 @@ def save_expense(request):
             expense.team = request.user.profile.all_teams
         expense.save()
     
-    return redirect('profile')
+    return redirect('dashboard')
 
+
+class ExpensesListView(ListView):
+    model = Expense
+    template_name = 'budgeting/all-expenses.html'

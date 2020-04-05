@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row align-items-center border-bottom mb-4">
+  <h1 class="mt-4">Dashboard</h1>
+  <a class="btn btn-primary mt-4 mr-3 ml-auto" href="{% url 'add-expense' %}">Add Expense</a>
+</div>
+
+<div class="row">
+
+    <div class="col-xl-3 col-sm-6">
+        <div class="card text-dark mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{ team.title }}</h5>
+                <p class="card-text">{{ team.balance }}</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="#">View Details</a>
+                <div class="small"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+        <div class="card text-dark mb-4">
+            <div class="card-body">
+                {% if exps_year.last.year %}
+                <h5 class="card-title">Year {{ exps_year.last.year|date:"Y" }}</h5>
+                <p class="card-text">{{ exps_year.last.sum }} tenge</p>
+                {% else %}
+                <h5 class="card-title">Year</h5>
+                <p class="card-text">You have not expenses yet</p>
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="#">View Details</a>
+                <div class="small"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+        <div class="card text-dark mb-4">
+            <div class="card-body">
+                {% if exps_month.last.month %}
+                <h5 class="card-title">{{ exps_month.last.month|date:"F Y" }} </h5>
+                <p class="card-text">{{ exps_month.last.sum }} tenge</p>
+                {% else %}
+                <h5 class="card-title">Month</h5>
+                <p class="card-text">You have not expenses yet</p>
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="#">View Details</a>
+                <div class="small"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+        <div class="card text-dark mb-4">
+            <div class="card-body">
+                {% if exps_day.last.day %}
+                <h5 class="card-title">{{ exps_day.last.day|date:"d F Y" }}</h5>
+                <p class="card-text">{{ exps_day.last.sum }} tenge</p>
+                {% else %}
+                <h5 class="card-title">Today</h5>
+                <p class="card-text">You have not expenses yet</p>
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="#">View Details</a>
+                <div class="small"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+   
+</div>
+
+<h2 class="border-bottom mb-3">My expenses</h2>
+
+<div class="row justify-content-center">
+    <div class="col-xl-4 col-md-6">
+        <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-chart-area mr-1"></i>Daily</div>
+            <div class="card-body"><canvas id="myAreaChart" width="100%" height="60"></canvas></div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6">
+      <div class="card mb-4">
+          <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Monthly by category</div>
+          <div class="card-body"><canvas id="myStackedBarChart" width="100%" height="60"></canvas></div>
+      </div>
+    </div>
+
+    <div class="col-xl-4 col-md-8">
+      <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-chart-pie mr-1"></i>This year</div>
+        <div class="card-body"><canvas id="myPieChart1" width="100%" height="60"></canvas></div>
+      </div>
+    </div>    
+</div>
+
+<h2 class="border-bottom mb-3">Team expenses</h2>
+
+<div class="row  justify-content-center">
+  <div class="col-xl-4 col-md-6">
+    <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Members in month</div>
+        <div class="card-body"><canvas id="myBarChart" width="100%" height="60"></canvas></div>
+    </div>
+  </div>
+
+  <div class="col-xl-4 col-md-6">
+    <div class="card mb-4">
+      <div class="card-header"><i class="fas fa-chart-pie mr-1"></i>This year</div>
+      <div class="card-body"><canvas id="myPieChart" width="100%" height="60"></canvas></div>
+    </div>
+  </div>
+
+  <div class="col-xl-4 col-md-8">
+    <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Members category</div>
+        <div class="card-body"><canvas id="teamMonthBarChart" width="100%" height="60"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header"><i class="fas fa-table mr-1"></i>Current year expenses</div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>User</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Date</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>User</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+
+                    {% for expense in expenses %}
+                    <tr>
+                       <td>{{ expense.created|date:"Y/m/d" }}</td>
+                        <td>{{ expense.title }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>{{ expense.category }}</td>
+                        <td>{{ expense.amount }}</td>
+                        <td>{{ expense.user.user.username }}</td>
+                    </tr>
+                    {% endfor %}
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block js_scripts %}
+<script>
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#292b2c';
+
+var dynamicColors = function() {
+var r = Math.floor(Math.random() * 255);
+var g = Math.floor(Math.random() * 255);
+var b = Math.floor(Math.random() * 255);
+return "rgb(" + r + "," + g + "," + b + ")";
+};
+
+
+// Area Chart Example
+var ctx1 = document.getElementById("myAreaChart");
+var myLineChart = new Chart(ctx1, {
+  type: 'line',
+  data: {
+    labels: [{% for day in exps_day %} "{{ day.day|date:'M d' }}", {% endfor %}],
+    datasets: [{
+        label: "Expense",
+        lineTension: 0.3,
+        backgroundColor: "rgba(2,117,216,0.2)",
+        borderColor: "rgba(2,117,216,1)",
+        pointRadius: 5,
+        pointBackgroundColor: "rgba(2,117,216,1)",
+        pointBorderColor: "rgba(255,255,255,0.8)",
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: "rgba(2,117,216,1)",
+        pointHitRadius: 50,
+        pointBorderWidth: 2,
+        data: [{% for day in exps_day %} "{{ day.sum }}", {% endfor %}],
+    }],
+},
+  options: {
+    scales: {
+      xAxes: [{
+        time: {
+          unit: 'date'
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 7
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          maxTicksLimit: 5
+        },
+        gridLines: {
+          color: "rgba(0, 0, 0, .125)",
+        }
+      }],
+    },
+    legend: {
+      display: false
+    }
+  }
+});
+
+
+// Bar Chart Example
+var ctx = document.getElementById("myBarChart");
+var myLineChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: [{% for lebel in m_lebel %} "{{ lebel|date:'M' }}", {% endfor %}],
+    datasets: [ 
+    {% for member in members_exps %} {
+        label: {% for item in member %}{% if forloop.first %}"{{ item.user }}"{% endif %}{% endfor %},
+        backgroundColor: {% for item in member %}{% if forloop.first %}"{{ item.clr }}"{% endif %}{% endfor %},
+        borderColor: "rgba(2,117,216,1)",
+        data: [{% for exp in member %}{x: "{{ exp.month|date:'M' }}", y: {{ exp.summary }}}, {% endfor %}],
+      }, 
+    {% endfor %} ],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        offset: true,
+        type: 'time',
+        time: {
+          parser: 'MMM',
+          unit: 'month',
+          displayFormats: {
+            month: 'MMM'
+          }
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 6
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          maxTicksLimit: 5
+        },
+        gridLines: {
+          display: true
+        }
+      }],
+    },
+    legend: {
+      display: true
+    }
+  }
+});
+
+// Stacked Bar Chart Example
+var ctx11 = document.getElementById("myStackedBarChart");
+var myLineChart = new Chart(ctx11, {
+  type: 'bar',
+  data: {
+    labels: [{% for lebel in m_lebel %} "{{ lebel|date:'M' }}", {% endfor %}],
+    datasets: [ 
+    {% regroup user_category_exps_monthly by category__title as category_list %}
+    {% for cat in category_list %} {
+        label: "{{ cat.grouper }}",
+        backgroundColor: {% for exp in cat.list %}{% if forloop.first %}"{{ exp.category__color }}"{% endif %}{% endfor %},
+        borderColor: {% for exp in cat.list %}{% if forloop.first %}"{{ exp.category__color }}"{% endif %}{% endfor %},
+        data: [{% for exp in cat.list %}{x: "{{ exp.month|date:'M' }}", y: {{ exp.summary }}}, {% endfor %}],
+      }, 
+    {% endfor %} ],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        // stacked: true,
+        offset: true,
+        type: 'time',
+        time: {
+          parser: 'MMM',
+          unit: 'month',
+          displayFormats: {
+            month: 'MMM'
+          }
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 6
+        }
+      }],
+      yAxes: [{
+        // stacked: true,
+        ticks: {
+          min: 0,
+          maxTicksLimit: 5
+        },
+        gridLines: {
+          display: true, 
+        }
+      }],
+    },
+    legend: {
+      display: false
+    }
+  }
+});
+
+// Pie Chart Example
+var ctx2 = document.getElementById("myPieChart");
+var myPieChart = new Chart(ctx2, {
+  type: 'pie',
+  data: {
+    labels: [{% for member in team_members_exps %} '{{ member.user.username }}', {% endfor %}],
+    datasets: [{
+      data: [{% for member in team_members_exps %} {{ member.sum }}, {% endfor %}],
+      backgroundColor: [{% for member in team_members_exps %} '{{ member.color }}', {% endfor %}],
+    }],
+  },
+});
+
+var ctx21 = document.getElementById("myPieChart1");
+var myPieChart = new Chart(ctx21, {
+  type: 'pie',
+  data: {
+    labels: [{% for cat in user_category_exps_year %} '{{ cat.category__title }}' , {% endfor %}],
+    datasets: [{
+      data: [{% for cat in user_category_exps_year %} {{ cat.summary }}, {% endfor %}],
+      backgroundColor: [{% for cat in user_category_exps_year %} '{{ cat.category__color }}' , {% endfor %}],
+    }],
+  },
+  options: {
+    legend: {
+      display: false
+    }
+  }
+});
+
+// Team month's Bar Chart Example
+var ctxTeam = document.getElementById("teamMonthBarChart");
+var myLineChart = new Chart(ctxTeam, {
+  type: 'bar',
+  data: {
+    labels: [{% for lebel in m_lebel %} "{{ lebel|date:'M' }}", {% endfor %}],
+    datasets: [ 
+    {% regroup team_category_exps_monthly by category__title as category_list %}
+    {% for cat in category_list %} {
+        label: "{{ cat.grouper }}",
+        backgroundColor: {% for exp in cat.list %}{% if forloop.first %}"{{ exp.category__color }}"{% endif %}{% endfor %},
+        borderColor: {% for exp in cat.list %}{% if forloop.first %}"{{ exp.category__color }}"{% endif %}{% endfor %},
+        data: [{% for exp in cat.list %}{x: "{{ exp.month|date:'M' }}", y: {{ exp.summary }}}, {% endfor %}],
+      }, 
+    {% endfor %} ],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        // stacked: true,
+        offset: true,
+        type: 'time',
+        time: {
+          parser: 'MMM',
+          unit: 'month',
+          displayFormats: {
+            month: 'MMM'
+          }
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 6
+        }
+      }],
+      yAxes: [{
+        // stacked: true,
+        ticks: {
+          min: 0,
+          maxTicksLimit: 5
+        },
+        gridLines: {
+          display: true, 
+        }
+      }],
+    },
+    legend: {
+      display: false
+    }
+  }
+});
+
+</script>
+
+{% endblock js_scripts %}

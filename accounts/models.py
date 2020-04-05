@@ -1,18 +1,31 @@
-import random
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.db.models import Sum
+from django.db.models.functions import TruncDay, TruncMonth, TruncYear
+
+from expense_tracker.utils import color_picker
 
 today = timezone.now()
 
-def color_picker():
-    r = lambda: random.randint(0, 255)
-    return '#%02X%02X%02X' % (r(),r(),r())
+
+class ProfileManager(models.Manager):
+    def expenses_per_year(self, user):
+        return self.filter(user=user).annotate(year=TruncYear('expense__created'), sum=Sum('expense__amount')).order_by('year')
+
+    def expenses_per_month(self, user):
+        return self.filter(user=user).annotate(month=TruncMonth('expense__created'), sum=Sum('expense__amount')).order_by('month')
+
+    def expenses_per_day(self, user):
+        return self.filter(user=user).annotate(day=TruncDay('expense__created'), sum=Sum('expense__amount')).order_by('day')
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    color = models.CharField(max_length=20, default='green')
     image = models.ImageField(default='default.jpg')
+
+    objects = ProfileManager()
 
     def __str__(self):
         return self.user.username
@@ -44,7 +57,10 @@ class Team(models.Model):
         team_members = self.members.all()
         for member in team_members:
             m_exps = member.expense_set.aggregate(summary=Sum('amount'))
-            perc = round(m_exps['summary']/t_exps['summary']*100)
+            if m_exps['summary'] != 0 and m_exps['summary'] is not None:
+                perc = round(m_exps['summary']/t_exps['summary']*100)
+            else:
+                perc = 0
             members.append(
                 {'name': member.user.username, 
                 'perc': perc, 
