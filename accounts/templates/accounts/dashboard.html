@@ -12,7 +12,7 @@
         <div class="card text-dark mb-4">
             <div class="card-body">
                 <h5 class="card-title">{{ team.title }}</h5>
-                <p class="card-text">{{ team.balance }}</p>
+                <p class="card-text">{{ team.sum_of_current_year.summary}}</p>
             </div>
             <div class="card-footer d-flex align-items-center justify-content-between">
                 <a class="small text-dark stretched-link" href="#">View Details</a>
@@ -24,12 +24,11 @@
     <div class="col-xl-3 col-sm-6">
         <div class="card text-dark mb-4">
             <div class="card-body">
-                {% if exps_year.last.year %}
-                <h5 class="card-title">Year {{ exps_year.last.year|date:"Y" }}</h5>
-                <p class="card-text">{{ exps_year.last.sum }} tenge</p>
+                <h5 class="card-title">Year {% now "Y" %}</h5>
+                {% if profile.current_year_exps.summary %}
+                <p class="card-text">{{ profile.current_year_exps.summary }} tenge</p>
                 {% else %}
-                <h5 class="card-title">Year</h5>
-                <p class="card-text">You have not expenses yet</p>
+                <p class="card-text">This year you have not expenses</p>
                 {% endif %}
             </div>
             <div class="card-footer d-flex align-items-center justify-content-between">
@@ -42,12 +41,11 @@
     <div class="col-xl-3 col-sm-6">
         <div class="card text-dark mb-4">
             <div class="card-body">
-                {% if exps_month.last.month %}
-                <h5 class="card-title">{{ exps_month.last.month|date:"F Y" }} </h5>
-                <p class="card-text">{{ exps_month.last.sum }} tenge</p>
+                <h5 class="card-title">{% now "F Y" %} </h5>
+                {% if profile.current_month_exps.summary %}
+                <p class="card-text">{{ profile.current_month_exps.summary }} tenge</p>
                 {% else %}
-                <h5 class="card-title">Month</h5>
-                <p class="card-text">You have not expenses yet</p>
+                <p class="card-text">This month you have not expenses</p>
                 {% endif %}
             </div>
             <div class="card-footer d-flex align-items-center justify-content-between">
@@ -60,12 +58,11 @@
     <div class="col-xl-3 col-sm-6">
         <div class="card text-dark mb-4">
             <div class="card-body">
-                {% if exps_day.last.day %}
-                <h5 class="card-title">{{ exps_day.last.day|date:"d F Y" }}</h5>
-                <p class="card-text">{{ exps_day.last.sum }} tenge</p>
+                <h5 class="card-title">Today {% now "d F Y" %}</h5>
+                {% if profile.today_exps.summary %}
+                <p class="card-text">{{ profile.today_exps.summary }} tenge</p>
                 {% else %}
-                <h5 class="card-title">Today</h5>
-                <p class="card-text">You have not expenses yet</p>
+                <p class="card-text">Today you have not expenses</p>
                 {% endif %}
             </div>
             <div class="card-footer d-flex align-items-center justify-content-between">
@@ -102,6 +99,8 @@
     </div>    
 </div>
 
+{% if profile.team %}
+
 <h2 class="border-bottom mb-3">Team expenses</h2>
 
 <div class="row  justify-content-center">
@@ -127,8 +126,10 @@
   </div>
 </div>
 
+{% endif %}
+
 <div class="card mb-4">
-    <div class="card-header"><i class="fas fa-table mr-1"></i>Current year expenses</div>
+    <div class="card-header"><i class="fas fa-table mr-1"></i>My current year expenses</div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -154,7 +155,7 @@
                 </tfoot>
                 <tbody>
 
-                    {% for expense in expenses %}
+                    {% for expense in profile.all_expenses %}
                     <tr>
                        <td>{{ expense.created|date:"Y/m/d" }}</td>
                         <td>{{ expense.title }}</td>
@@ -179,20 +180,13 @@
 Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.global.defaultFontColor = '#292b2c';
 
-var dynamicColors = function() {
-var r = Math.floor(Math.random() * 255);
-var g = Math.floor(Math.random() * 255);
-var b = Math.floor(Math.random() * 255);
-return "rgb(" + r + "," + g + "," + b + ")";
-};
-
-
-// Area Chart Example
-var ctx1 = document.getElementById("myAreaChart");
-var myLineChart = new Chart(ctx1, {
+// User section
+// user's daily expenses Area Chart
+var userExps = document.getElementById("myAreaChart");
+var myLineChart = new Chart(userExps, {
   type: 'line',
   data: {
-    labels: [{% for day in exps_day %} "{{ day.day|date:'M d' }}", {% endfor %}],
+    labels: [{% for day in profile.expenses_per_day %} "{{ day.day|date:'M d' }}", {% endfor %}],
     datasets: [{
         label: "Expense",
         lineTension: 0.3,
@@ -205,7 +199,7 @@ var myLineChart = new Chart(ctx1, {
         pointHoverBackgroundColor: "rgba(2,117,216,1)",
         pointHitRadius: 50,
         pointBorderWidth: 2,
-        data: [{% for day in exps_day %} "{{ day.sum }}", {% endfor %}],
+        data: [{% for day in profile.expenses_per_day %} "{{ day.sum }}", {% endfor %}],
     }],
 },
   options: {
@@ -237,60 +231,9 @@ var myLineChart = new Chart(ctx1, {
   }
 });
 
-
-// Bar Chart Example
-var ctx = document.getElementById("myBarChart");
-var myLineChart = new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: [{% for lebel in m_lebel %} "{{ lebel|date:'M' }}", {% endfor %}],
-    datasets: [ 
-    {% for member in members_exps %} {
-        label: {% for item in member %}{% if forloop.first %}"{{ item.user }}"{% endif %}{% endfor %},
-        backgroundColor: {% for item in member %}{% if forloop.first %}"{{ item.clr }}"{% endif %}{% endfor %},
-        borderColor: "rgba(2,117,216,1)",
-        data: [{% for exp in member %}{x: "{{ exp.month|date:'M' }}", y: {{ exp.summary }}}, {% endfor %}],
-      }, 
-    {% endfor %} ],
-  },
-  options: {
-    scales: {
-      xAxes: [{
-        offset: true,
-        type: 'time',
-        time: {
-          parser: 'MMM',
-          unit: 'month',
-          displayFormats: {
-            month: 'MMM'
-          }
-        },
-        gridLines: {
-          display: false
-        },
-        ticks: {
-          maxTicksLimit: 6
-        }
-      }],
-      yAxes: [{
-        ticks: {
-          min: 0,
-          maxTicksLimit: 5
-        },
-        gridLines: {
-          display: true
-        }
-      }],
-    },
-    legend: {
-      display: true
-    }
-  }
-});
-
-// Stacked Bar Chart Example
-var ctx11 = document.getElementById("myStackedBarChart");
-var myLineChart = new Chart(ctx11, {
+// User's monthly expenses by category  Bar Chart
+var userExpsCat = document.getElementById("myStackedBarChart");
+var myLineChart = new Chart(userExpsCat, {
   type: 'bar',
   data: {
     labels: [{% for lebel in m_lebel %} "{{ lebel|date:'M' }}", {% endfor %}],
@@ -341,21 +284,9 @@ var myLineChart = new Chart(ctx11, {
   }
 });
 
-// Pie Chart Example
-var ctx2 = document.getElementById("myPieChart");
-var myPieChart = new Chart(ctx2, {
-  type: 'pie',
-  data: {
-    labels: [{% for member in team_members_exps %} '{{ member.user.username }}', {% endfor %}],
-    datasets: [{
-      data: [{% for member in team_members_exps %} {{ member.sum }}, {% endfor %}],
-      backgroundColor: [{% for member in team_members_exps %} '{{ member.color }}', {% endfor %}],
-    }],
-  },
-});
-
-var ctx21 = document.getElementById("myPieChart1");
-var myPieChart = new Chart(ctx21, {
+// user's monthly expenses by category Pie Chart
+var userMonthCat = document.getElementById("myPieChart1");
+var myPieChart = new Chart(userMonthCat, {
   type: 'pie',
   data: {
     labels: [{% for cat in user_category_exps_year %} '{{ cat.category__title }}' , {% endfor %}],
@@ -371,14 +302,82 @@ var myPieChart = new Chart(ctx21, {
   }
 });
 
-// Team month's Bar Chart Example
-var ctxTeam = document.getElementById("teamMonthBarChart");
-var myLineChart = new Chart(ctxTeam, {
+// Team section
+
+// team members monthly expensenses Bar Chart
+var teamMonthExps = document.getElementById("myBarChart");
+var myLineChart = new Chart(teamMonthExps, {
   type: 'bar',
   data: {
     labels: [{% for lebel in m_lebel %} "{{ lebel|date:'M' }}", {% endfor %}],
     datasets: [ 
-    {% regroup team_category_exps_monthly by category__title as category_list %}
+    {% regroup team.team_month_exp by user as members %}
+    {% for member in members %} {
+        label: "{{ member.grouper }}",
+        backgroundColor: {% for item in member.list %}{% if forloop.first %}"{{ item.color }}"{% endif %}{% endfor %},
+        borderColor: "rgba(2,117,216,1)",
+        data: [{% for exp in member.list %}{x: "{{ exp.month|date:'M' }}", y: {{ exp.summary }}}, {% endfor %}],
+      }, 
+    {% endfor %} ],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        offset: true,
+        type: 'time',
+        time: {
+          parser: 'MMM',
+          unit: 'month',
+          displayFormats: {
+            month: 'MMM'
+          }
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 6
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          maxTicksLimit: 5
+        },
+        gridLines: {
+          display: true
+        }
+      }],
+    },
+    legend: {
+      display: true
+    }
+  }
+});
+
+
+// team members current year expenses Pie Chart
+var teamYearExps = document.getElementById("myPieChart");
+var myPieChart = new Chart(teamYearExps, {
+  type: 'pie',
+  data: {
+    labels: [{% for member in team.team_members_exps %} '{{ member.user.username }}', {% endfor %}],
+    datasets: [{
+      data: [{% for member in team.team_members_exps %} {{ member.sum }}, {% endfor %}],
+      backgroundColor: [{% for member in team.team_members_exps %} '{{ member.color }}', {% endfor %}],
+    }],
+  },
+});
+
+
+// Team expenses by category Bar Chart
+var teamMonthCat = document.getElementById("teamMonthBarChart");
+var myLineChart = new Chart(teamMonthCat, {
+  type: 'bar',
+  data: {
+    labels: [{% for lebel in m_lebel %} "{{ lebel|date:'M' }}", {% endfor %}],
+    datasets: [ 
+    {% regroup team.team_category_exps_monthly by category__title as category_list %}
     {% for cat in category_list %} {
         label: "{{ cat.grouper }}",
         backgroundColor: {% for exp in cat.list %}{% if forloop.first %}"{{ exp.category__color }}"{% endif %}{% endfor %},

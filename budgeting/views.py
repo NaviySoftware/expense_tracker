@@ -20,8 +20,8 @@ def save_expense(request):
     if form.is_valid():
         expense = form.save(commit=False)
         expense.user = request.user.profile
-        if request.user.profile.all_teams:
-            expense.team = request.user.profile.all_teams
+        if request.user.profile.team:
+            expense.team = request.user.profile.team
         expense.save()
     
     return redirect('dashboard')

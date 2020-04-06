@@ -1,40 +1,50 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from django.db.models import Sum
+from django.db.models import Sum, Case, When, IntegerField
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 
-from expense_tracker.utils import color_picker
-
 today = timezone.now()
-
-
-class ProfileManager(models.Manager):
-    def expenses_per_year(self, user):
-        return self.filter(user=user).annotate(year=TruncYear('expense__created'), sum=Sum('expense__amount')).order_by('year')
-
-    def expenses_per_month(self, user):
-        return self.filter(user=user).annotate(month=TruncMonth('expense__created'), sum=Sum('expense__amount')).order_by('month')
-
-    def expenses_per_day(self, user):
-        return self.filter(user=user).annotate(day=TruncDay('expense__created'), sum=Sum('expense__amount')).order_by('day')
-
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     color = models.CharField(max_length=20, default='green')
     image = models.ImageField(default='default.jpg')
 
-    objects = ProfileManager()
-
     def __str__(self):
         return self.user.username
 
     @property
-    def all_teams(self):
+    def team(self):
         if self.team_set.all():
             return self.team_set.all()[0]
         return False
+
+    @property
+    def all_expenses(self):
+        return self.expense_set.all()
+
+    @property
+    def current_year_exps(self):
+        return self.expense_set.filter(
+                created__year=today.year).aggregate(
+                    summary=Sum('amount'))
+
+    @property
+    def current_month_exps(self):
+        return self.expense_set.filter(
+            created__month=today.month).aggregate(
+                summary=Sum('amount'))
+
+    @property
+    def today_exps(self):
+        return self.expense_set.filter(
+            created__day=today.day).aggregate(summary=Sum('amount'))
+
+    @property
+    def expenses_per_day(self):
+        return self.expense_set.annotate(
+            day=TruncDay('created'), sum=Sum('amount')).order_by('day')
 
         
 class Team(models.Model):
@@ -51,22 +61,28 @@ class Team(models.Model):
         return self.for_team.all().order_by('-created')
 
     @property
-    def percentage(self):
-        members = []
-        t_exps = self.all_expenses.aggregate(summary=Sum('amount'))
-        team_members = self.members.all()
-        for member in team_members:
-            m_exps = member.expense_set.aggregate(summary=Sum('amount'))
-            if m_exps['summary'] != 0 and m_exps['summary'] is not None:
-                perc = round(m_exps['summary']/t_exps['summary']*100)
-            else:
-                perc = 0
-            members.append(
-                {'name': member.user.username, 
-                'perc': perc, 
-                'color': color_picker()})
-        return members
+    def sum_of_current_year(self):
+        return self.for_team.filter(created__year=today.year).aggregate(summary=Sum('amount'))
 
+    @property
+    def team_category_exps_monthly(self):
+        return self.for_team.values(
+            'category__title', 'category__color').annotate(
+                month=TruncMonth('created'), summary=Sum('amount'))
+    
+    @property
+    def team_members_exps(self):
+        return self.members.annotate(year = Case(
+                    When(expense__created__year=today.year, then=today.year), 
+                    default=0, 
+                    output_field=IntegerField())
+                    ).filter(year=today.year).annotate(sum=Sum('expense__amount'))
+
+    @property
+    def team_month_exp(self):
+        return self.members.annotate(
+                    month=TruncMonth('expense__created'), 
+                    summary=Sum('expense__amount'))
 
 
 class Membership(models.Model):
