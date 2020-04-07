@@ -9,6 +9,7 @@ from expense_tracker.utils import color_picker
 
 class Category(models.Model):
     title = models.CharField(max_length=50)
+    users = models.ManyToManyField(Profile)
     color = models.CharField(max_length=20, default='red')
 
     class Meta:
