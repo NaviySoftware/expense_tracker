@@ -1,13 +1,19 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-<div class="row align-items-center border-bottom mb-4">
-  <h1 class="mt-4">Dashboard</h1>
-  <a class="btn btn-primary mt-4 mr-3 ml-auto" href="{% url 'add-expense' %}">Add Expense</a>
+<div class="row border-bottom mb-4 mt-4">
+  <div class="col-md-8 align-items-center">
+    <h1>Dashboard</h1>
+  </div>
+  <div class="col-md-4 d-flex justify-content-end align-items-center">
+    <button class="btn btn-primary " data-toggle="modal" data-target="#addExpense">Add Expense</button>    
+  </div>
+  
 </div>
 
 <div class="row">
-
+  {% if team %}
     <div class="col-xl-3 col-sm-6">
         <div class="card text-dark mb-4">
             <div class="card-body">
@@ -20,6 +26,7 @@
             </div>
         </div>
     </div>
+  {% endif %}
 
     <div class="col-xl-3 col-sm-6">
         <div class="card text-dark mb-4">
@@ -140,7 +147,6 @@
                         <th>Description</th>
                         <th>Category</th>
                         <th>Amount</th>
-                        <th>User</th>
                     </tr>
                 </thead>
                 <tfoot>
@@ -150,7 +156,6 @@
                         <th>Description</th>
                         <th>Category</th>
                         <th>Amount</th>
-                        <th>User</th>
                     </tr>
                 </tfoot>
                 <tbody>
@@ -162,7 +167,6 @@
                         <td>{{ expense.description }}</td>
                         <td>{{ expense.category }}</td>
                         <td>{{ expense.amount }}</td>
-                        <td>{{ expense.user.user.username }}</td>
                     </tr>
                     {% endfor %}
                     
@@ -170,6 +174,30 @@
             </table>
         </div>
     </div>
+</div>
+
+
+<!-- Add Expense Modal -->
+<div class="modal fade" id="addExpense" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add Expense</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{% url 'save-expense' %}" method="POST">
+          {% csrf_token %}
+          <div class="modal-body"> 
+              {{form|crispy}}
+              <div class="form-group">
+                  <button class="btn btn-primary" type='submit'>Add</button>
+              </div>
+          </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 {% endblock content %}

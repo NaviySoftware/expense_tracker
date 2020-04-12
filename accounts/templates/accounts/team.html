@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="m-4">Team Members</h1>
+
+<div class="card-deck">
+    {% for member in members %}
+    <div class="card text-center">
+    <div class="justify-content-center">
+        <img src="{{ member.image.url }}" class="card-img-top" alt="..." style="width:200px; height:200px;">
+    </div>
+      <div class="card-body">
+        <h5 class="card-title"><a href="{{member.get_absolute_url}}">{{ member.user.username }}</a></h5>
+        {% for membership in member.membership_set.all %}
+        <p class="card-text">Role in the group: {{ membership.role }}</p>
+        <p class="card-text">
+          Total expenses 
+          (<span class="badge badge-success" data-toggle="tooltip" data-placement="right" title="{{ member.exps }} expneses"> {{ member.exps }}</span>) 
+          {{ member.summary }}tg 
+        </p>
+          
+        <p class="card-text">Joined date: {{ membership.created|date:'d-F-Y' }}</p>
+        {% endfor %}
+        {% if member.user == request.user %}
+        <p class="card-text text-right"><small class="text-muted">Online</small></p>
+        {% else %}
+        <p class="card-text text-right"><small class="text-muted">Was online {{ member.user.last_login|date:'d-F-Y' }}</small></p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="justify-content-end mt-4 mb-4">
+    <a href="{% url 'search-users' %}" class="btn btn-lg btn-primary">Invite Person</a>
+</div>
+
+{% endblock content %}

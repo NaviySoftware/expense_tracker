@@ -7,7 +7,7 @@
     {% if categories %}
     <div class="row mb-4">
         <div class="col-lg-6 p-2">
-            <canvas id="horizontalBarChart" width="100%" height="20"></canvas>
+            <canvas id="horizontalBarChart" width="100%" height="25"></canvas>
         </div>
     </div>
     {% endif %}
@@ -18,7 +18,7 @@
                 <tr>
                     <th>Title</th>
                     <th>Total amount</th>
-                    <th>User</th>
+                    <th></th>
                 </tr>
             </thead>
 
@@ -33,7 +33,7 @@
                     <td>{{ obj.summary }} tg</td>
                     <td class="text-right">
                         <button data-catid="{{ obj.category__id }}" class="btn btn-outline-danger btn-sm mr-4 mb-1"  data-toggle="modal" data-target="#deleteModal">Remove</button>
-                        <button data-catid="{{ obj.category__id }}" data-title="{{ obj.category__title }}" class="btn btn-outline-success btn-sm" data-toggle="modal" data-target="#editModal"  >Change</button>
+                        <button data-catid="{{ obj.category__id }}" data-title="{{ obj.category__title }}" class="btn btn-outline-success btn-sm mr-4" data-toggle="modal" data-target="#editModal"  >Change</button>
                     </td>
                 </tr>
                 {% else %}
@@ -59,7 +59,7 @@
                   <td>0</td>
                   <td  class="text-right">
                       <button data-catid="{{obj.id}}" class="btn btn-outline-danger btn-sm mr-4 mb-1"  data-toggle="modal" data-target="#deleteModal">Remove</button>
-                      <button data-catid="{{ obj.id }}" data-title="{{ obj.title }}" class="btn btn-outline-success btn-sm" data-toggle="modal" data-target="#editModal" >Change</button>
+                      <button data-catid="{{ obj.id }}" data-title="{{ obj.title }}" class="btn btn-outline-success btn-sm mr-4" data-toggle="modal" data-target="#editModal" >Change</button>
                   </td>
                 </tr>
 
@@ -162,7 +162,7 @@ var userExpsCat = document.getElementById("horizontalBarChart");
 var myLineChart = new Chart(userExpsCat, {
   type: 'horizontalBar',
   data: {
-    labels: ["Category"],
+    labels: ["Categories"],
     datasets: [
         {% for cat in categories %}{
         label: "{{ cat.category__title }}",

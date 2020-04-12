@@ -1,262 +1,265 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 <div class="row align-items-center border-bottom mb-4">
-  <h1 class="mt-4">Dashboard</h1>
-  <a class="btn btn-primary mt-4 mr-3 ml-auto" href="{% url 'add-expense' %}">Add Expense</a>
+  <h1 class="mt-4">Profile</h1>
 </div>
 
 <div class="row">
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card text-dark mb-4">
-            <div class="card-body">
-                <h5 class="card-title">{{profile.all_teams.title}}</h5>
-                <p class="card-text">{{ profile.all_teams.balance }}</p>
-            </div>
-            <div class="card-footer d-flex align-items-center justify-content-between">
-                <a class="small text-dark stretched-link" href="#">View Details</a>
-                <div class="small"><i class="fas fa-angle-right"></i></div>
-            </div>
+  <div class="col-sm card mb-3">
+    <h5 class="card-header">User info</h5>
+    <div class="row no-gutters">
+      <div class="col-md-4 text-center justify-content-center align-items-center">
+        <img src="{{ profile.image.url }}" class="card-img" alt="{{ profile.user.username }}" style="width:200px; height:200px;">
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          {% if profile.user.first_name %}
+          <h5 class="card-title">{{ profile.user.first_name }} {{ profile.user.last_name }}</h5>
+          {% else %}
+          <h5 class="card-title">{{ profile.user.username }}</h5>
+          {% endif %}
+          {% if request.user.is_authenticated  %}
+          <p class="card-text">Email: {{ profile.user.email }}</p>
+          {% endif %}
+          <p class="card-text">Profile created at: {{ profile.user.date_joined|date:'d-F-Y' }}</p>
         </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card text-dark mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Year {{ yearly_expenses.last.year.year }}</h5>
-                <p class="card-text">{{ yearly_expenses.last.summary }} tenge</p>
-            </div>
-            <div class="card-footer d-flex align-items-center justify-content-between">
-                <a class="small text-dark stretched-link" href="#">View Details</a>
-                <div class="small"><i class="fas fa-angle-right"></i></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card text-dark mb-4">
-            <div class="card-body">
-                <h5 class="card-title">{{ monthly_expenses.last.month|date:"F Y" }} </h5>
-                <p class="card-text">{{ monthly_expenses.last.summary }} tenge</p>
-            </div>
-            <div class="card-footer d-flex align-items-center justify-content-between">
-                <a class="small text-dark stretched-link" href="#">View Details</a>
-                <div class="small"><i class="fas fa-angle-right"></i></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card text-dark mb-4">
-            <div class="card-body">
-                <h5 class="card-title">{{ dayly_expenses.last.day|date:"d F Y" }}</h5>
-                <p class="card-text">{{ dayly_expenses.last.summary }} tenge</p>
-            </div>
-            <div class="card-footer d-flex align-items-center justify-content-between">
-                <a class="small text-dark stretched-link" href="#">View Details</a>
-                <div class="small"><i class="fas fa-angle-right"></i></div>
-            </div>
-        </div>
-    </div>
-   
-</div>
-
-<div class="row justify-content-center">
-    <div class="col-xl-4 col-md-6">
-        <div class="card mb-4">
-            <div class="card-header"><i class="fas fa-chart-area mr-1"></i>Dayly expenses</div>
-            <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
-        </div>
-    </div>
-
-    <div class="col-xl-4 col-md-6">
-        <div class="card mb-4">
-            <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Monthly expenses</div>
-            <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
-        </div>
-    </div>
-
-    <div class="col-xl-4 col-md-6">
-      <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-chart-pie mr-1"></i>Team members expenses</div>
-        <div class="card-body"><canvas id="myPieChart" width="100%" height="40"></canvas></div>
       </div>
     </div>
+  </div>   
 </div>
 
-<div class="card mb-4">
-    <div class="card-header"><i class="fas fa-table mr-1"></i>Current month's expenses</div>
+<div class="row">
+  <div class=" col-sm card">
+    <h5 class="card-header">Team section</h5>
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Category</th>
-                        <th>Amount</th>
-                        <th>Team</th>
-                    </tr>
-                </thead>
-                <tfoot>
-                    <tr>
-                        <th>Date</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Category</th>
-                        <th>Amount</th>
-                        <th>Team</th>
-                    </tr>
-                </tfoot>
-                <tbody>
+      {% if profile.team %}
+        <h5>{{ profile.team.title }}</h5>
+        <p class="card-text">Team members: {% for mem in profile.team.members.all %} <a href="{{mem.get_absolute_url}}">{{ mem.user.username }}</a>, {% endfor %}</p>
+        <p class="card-text">Created at: {{ profile.team.created|date:'d-F-Y' }}</p>
 
-                    {% for expense in curent_month_expenses %}
-                    <tr>
-                       <td>{{ expense.created|date:"Y/m/d" }}</td>
-                        <td>{{ expense.title }}</td>
-                        <td>{{ expense.description }}</td>
-                        <td>{{ expense.categor }}</td>
-                        <td>{{ expense.amount }}</td>
-                        <td>{{ expense.team.title }}</td>
-                    </tr>
-                    {% endfor %}
-                    
-                </tbody>
-            </table>
-        </div>
+        {% if profile.user == request.user %}
+          {% if membership_from %}
+            <h5>Requests</h5>
+            <div class="list-group mb-4">
+              {% for m in membership_from %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">{{m.to_user.user.username}} 
+                <button class="btn btn-danger justify-content-end" data-userid="{{ m.to_user.user.id }}" data-toggle="modal" data-target="#cancelRequest">Cancel</button>
+              </li>
+              {% endfor %}
+            </div>
+          {% endif %}      
+
+        <button class="btn btn-danger mb-2" data-toggle="modal" data-target="#leaveTeam">Leave a team</button>
+        <a href="{% url 'search-users' %}" class="btn btn-primary mb-2">Invite Person</a>
+        {% endif %}
+      {% else %}
+        {% if profile.user != request.user %}
+          <button  data-toggle="modal" data-target="#inviteToTeam" class="btn btn-success">Invite to team</button>
+        {% else %}
+
+          {% if membership_to %}
+            <h5>Invites</h5>
+            <div class="list-group mb-4">
+              {% for m in membership_to %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">{{m.from_user.team}} 
+                <div>
+                  <button class="btn btn-sm btn-success" data-userfromid="{{ m.from_user.user.id }}" data-toggle="modal" data-target="#acceptRequest">Accept</button>
+                  <button class="btn btn-sm btn-danger" data-userfromid="{{ m.from_user.user.id }}" data-toggle="modal" data-target="#removeRequest">Remove</button>
+                </div>
+              </li>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <p class="mt-4">You can wait a invite to a team or create your own.</p>
+          <button class="btn btn-info" data-toggle="modal" data-target="#createTeam">Create Team</button>
+        {% endif %}
+      {% endif %}
     </div>
+  </div>
 </div>
 
+<!-- Create Team Modal -->
+<div class="modal fade" id="createTeam" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Create Team</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{% url 'create-team' %}" method="POST">
+          {% csrf_token %}
+          <div class="modal-body"> 
+              {{form|crispy}}
+              <div class="form-group">
+                  <button class="btn btn-primary" type='submit'>Create</button>
+              </div>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Team Modal -->
+<div class="modal fade" id="leaveTeam" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Leave the Team</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{% url 'leave-team' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body"> 
+          <p>Are you sure you want leave "{{ request.user.profile.team.title }}" team?</p>
+          <input type="hidden" name="team_id" value="{{ request.user.profile.team.id }}">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Yes, Leave</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Invite to Team Modal -->
+<div class="modal fade" id="inviteToTeam" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Invite to Team</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{% url 'membership-request' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body"> 
+          <p>Are you sure you want to invite "{{ profile.user.username }}" to team?</p>
+          <input type="hidden" name="user_id" value="{{ profile.user.id }}">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Yes, Invite</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel the request Modal -->
+<div class="modal fade" id="cancelRequest" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Cancel Request</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{% url 'cancel-request' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body"> 
+          <p>Are you sure you want cancel this request?</p>
+          <input type="hidden" id="userto_id" name="user_to_id" value="">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Leave</button>
+          <button type="submit" class="btn btn-danger">Yes, Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Accept the request Modal -->
+<div class="modal fade" id="acceptRequest" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Accept the Request</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{% url 'accept-request' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body"> 
+          <p>Are you sure you want to join this team?</p>
+          <input type="hidden" id="userfrom_id" name="user_from_id" value="">
+          <input type="text" name="user_from_role" class="form-control" placeholder="role in this group">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Yes, Join</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Remove the request Modal -->
+<div class="modal fade" id="removeRequest" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Remove the Request</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{% url 'remove-request' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body"> 
+          <p>Are you sure you want to remove this team request?</p>
+          <input type="hidden" id="f_user_id" name="f_user_id" value="">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Yes, Remove</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock content %}
 
 {% block js_scripts %}
 <script>
-// Set new default font family and font color to mimic Bootstrap's default styling
-Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-Chart.defaults.global.defaultFontColor = '#292b2c';
+// cancel request button clicked
+$('#cancelRequest').on('show.bs.modal', function (event) {
+  var btn = $(event.relatedTarget)
+  var cat_id = btn.data('userid')  
+  var modal = $(this)
 
-// Area Chart Example
-var ctx1 = document.getElementById("myAreaChart");
-var myLineChart = new Chart(ctx1, {
-  type: 'line',
-  data: {
-    labels: [ {% for day in dayly_expenses %} "{{ day.day|date:'M d' }}", {% endfor %} ],
-    datasets: [{
-      label: "Expense",
-      lineTension: 0.3,
-      backgroundColor: "rgba(2,117,216,0.2)",
-      borderColor: "rgba(2,117,216,1)",
-      pointRadius: 5,
-      pointBackgroundColor: "rgba(2,117,216,1)",
-      pointBorderColor: "rgba(255,255,255,0.8)",
-      pointHoverRadius: 5,
-      pointHoverBackgroundColor: "rgba(2,117,216,1)",
-      pointHitRadius: 50,
-      pointBorderWidth: 2,
-      data: [{% for day in dayly_expenses %} '{{ day.summary }}', {% endfor %}],
-    }],
-  },
-  options: {
-    scales: {
-      xAxes: [{
-        time: {
-          unit: 'date'
-        },
-        gridLines: {
-          display: false
-        },
-        ticks: {
-          maxTicksLimit: 7
-        }
-      }],
-      yAxes: [{
-        ticks: {
-          min: 0,
-          max: {{ day_max }},
-          maxTicksLimit: 5
-        },
-        gridLines: {
-          color: "rgba(0, 0, 0, .125)",
-        }
-      }],
-    },
-    legend: {
-      display: false
-    }
-  }
-});
+  modal.find('.modal-body #userto_id').val(cat_id);
+})
 
 
-// Bar Chart Example
-var ctx = document.getElementById("myBarChart");
-var myLineChart = new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: [{% for month in monthly_expenses %} '{{month.month|date:"F"}}', {% endfor %}],
-    datasets: [{
-      label: "Expenses",
-      backgroundColor: "rgba(2,117,216,1)",
-      borderColor: "rgba(2,117,216,1)",
-      data: [{% for month in monthly_expenses %} '{{ month.summary }}', {% endfor %}],
-    }],
-  },
-  options: {
-    scales: {
-      xAxes: [{
-        time: {
-          unit: 'month'
-        },
-        gridLines: {
-          display: false
-        },
-        ticks: {
-          maxTicksLimit: 6
-        }
-      }],
-      yAxes: [{
-        ticks: {
-          min: 0,
-          max: {{ month_max }},
-          maxTicksLimit: 5
-        },
-        gridLines: {
-          display: true
-        }
-      }],
-    },
-    legend: {
-      display: false
-    }
-  }
-});
+// accept request button clicked
+$('#acceptRequest').on('show.bs.modal', function (event) {
+  var btn = $(event.relatedTarget)
+  var cat_id = btn.data('userfromid')  
+  var modal = $(this)
 
-// Pie Chart Example
-var ctx2 = document.getElementById("myPieChart");
-var myPieChart = new Chart(ctx2, {
-  type: 'pie',
-  data: {
-    labels: [ 
-      {% for team in profile.all_teams.percentage %} 
-        '{{ team.name }}', 
-      {% endfor %} 
-    ],
-    datasets: [{
-      data: [
-        {% for team in profile.all_teams.percentage %} 
-          {{ team.perc }}, 
-        {% endfor %}
-      ],
-      backgroundColor: [
-        {% for team in profile.all_teams.percentage %} 
-          '{{ team.color }}', 
-        {% endfor %}
-      ],
-    }],
-  },
-});
+  modal.find('.modal-body #userfrom_id').val(cat_id);
+})
 
+// accept request button clicked
+$('#removeRequest').on('show.bs.modal', function (event) {
+  var btn = $(event.relatedTarget)
+  var cat_id = btn.data('userfromid')  
+  var modal = $(this)
+
+  modal.find('.modal-body #f_user_id').val(cat_id);
+})
 </script>
 
 {% endblock js_scripts %}

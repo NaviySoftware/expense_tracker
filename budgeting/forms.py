@@ -10,7 +10,7 @@ class AddExpenseForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super(AddExpenseForm, self).__init__(*args, **kwargs)
         if user is not None:
-            self.fields['category'] = forms.ModelChoiceField(Category.objects.filter(users=user.profile), empty_label='Without category')
+            self.fields['category'] = forms.ModelChoiceField(Category.objects.filter(users=user.profile), empty_label='Without category', required=False)
 
 
 class CreateCategoryForm(forms.ModelForm):

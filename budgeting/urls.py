@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import (add_expense, 
-                    save_expense, 
+from .views import (save_expense, 
+                    delete_expense,
                     category_list, 
                     add_category, 
                     delete_category, 
@@ -8,9 +8,9 @@ from .views import (add_expense,
                     ExpensesListView)
 
 urlpatterns = [
-    path('add/', add_expense, name='add-expense'),
     path('save/', save_expense, name='save-expense'),
-    path('all/', ExpensesListView.as_view(), name='all-expenses'),
+    path('expenses/user/<str:username>', ExpensesListView.as_view(), name='all-expenses'),
+    path('expenses/delete-expense', delete_expense, name='delete-expense'),
     path('categories/', category_list, name='categories'),
     path('categories/add-category', add_category, name='add-category'),
     path('categories/delete-category', delete_category, name='delete-category'),
